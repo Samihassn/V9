@@ -1,0 +1,80 @@
+import os, io, re, tempfile, importlib, subprocess, sys, zipfile
+from pathlib import Path
+os.environ.update(DATA_DIR=tempfile.mkdtemp(), APP_SECRET='test-session-secret-only', ADMIN_USER='admin', ADMIN_PASSWORD='test-password', HTTPS_ONLY='false', SEED_DEMO='false')
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import main
+from fastapi.testclient import TestClient
+from PIL import Image
+import pytest
+
+def token(response):
+    return re.search(r'name="token" value="([^"]+)"', response.text).group(1)
+
+@pytest.fixture
+def client():
+    main._attempts.clear()
+    with main.db() as db:
+        db.execute('DELETE FROM projects')
+        db.execute('DELETE FROM messages')
+    with TestClient(main.app) as c:
+        yield c
+
+def login(c):
+    csrf = token(c.get('/admin/login'))
+    assert c.post('/admin/login', data=dict(username='admin', password='test-password', token=csrf)).status_code == 200
+    return token(c.get('/admin'))
+
+def fields(csrf):
+    return dict(token=csrf, title_ar='مشروع تجريبي', title_en='Test project', description_ar='وصف', description_en='Description', category='AI', link='https://example.com', featured='yes')
+
+def test_auth_csrf(client):
+    assert client.get('/admin', follow_redirects=False).status_code == 303
+    assert client.post('/admin/projects', data=fields('bad')).status_code == 403
+    csrf=login(client)
+    assert client.post('/admin/settings', data={'token':'bad'}).status_code == 403
+    assert client.get('/admin').headers['cache-control'] == 'no-store'
+    assert client.post('/admin/logout',data={'token':csrf},follow_redirects=False).status_code==303
+    assert client.get('/admin',follow_redirects=False).status_code==303
+
+def test_upload_edit_persistence_delete(client):
+    csrf=login(client)
+    image=io.BytesIO(); Image.new('RGB',(40,20),'green').save(image,'PNG')
+    response=client.post('/admin/projects',data=fields(csrf),files={'image':('photo.png',image.getvalue(),'image/png')})
+    assert response.status_code==200
+    project=main.projects()[0]; filename=project['image']
+    assert client.get('/media/'+filename).headers['content-type']=='image/webp'
+    with Image.open(main.UPLOADS/filename) as img: assert img.size==(40,20)
+    assert client.post(f"/admin/projects/{project['id']}/update",data=fields(csrf)).status_code==200
+    assert main.projects()[0]['image']==filename
+    assert client.post(f"/admin/projects/{project['id']}/remove-image",data={'token':csrf}).status_code==200
+    assert main.projects()[0]['image']==''
+    assert (main.UPLOADS/filename).exists() # retained for backups/recovery
+    assert client.post(f"/admin/projects/{project['id']}/delete",data={'token':csrf}).status_code==200
+    importlib.reload(main)
+    assert main.projects()==[]
+
+def test_invalid_upload(client):
+    csrf=login(client)
+    assert client.post('/admin/projects',data=fields(csrf),files={'image':('bad.png',b'not an image','image/png')}).status_code==400
+    assert client.post('/admin/projects',data=fields(csrf),files={'image':('big.png',b'x'*(5*1024*1024+1),'image/png')}).status_code==413
+    data=fields(csrf);data['link']='javascript:alert(1)'
+    assert client.post('/admin/projects',data=data).status_code==400
+
+def test_content_contact_backup(client,tmp_path):
+    csrf=login(client)
+    assert client.post('/admin/settings',data={'token':csrf,'hero_ar':'<script>alert(1)</script>','hero_en':'My work'}).status_code==200
+    home=client.get('/')
+    assert '&lt;script&gt;' in home.text and '<script>alert(1)</script>' not in home.text
+    csrf=token(home)
+    assert client.post('/contact',data={'token':csrf,'name':'Sami','email':'bad','message':'Hello'}).status_code==400
+    assert client.post('/contact',data={'token':csrf,'name':'Sami','email':'user@example.com','message':'Hello'}).status_code==200
+    assert 'user@example.com' in client.get('/admin').text
+    archive=tmp_path/'backup.zip'
+    subprocess.run([sys.executable,'scripts/backup.py','--data-dir',str(main.ROOT),'--output',str(archive)],check=True)
+    with zipfile.ZipFile(archive) as z: assert 'site.db' in z.namelist()
+
+def test_login_limit(client):
+    csrf=token(client.get('/admin/login'))
+    for _ in range(8):
+        assert client.post('/admin/login',data={'token':csrf,'username':'wrong','password':'wrong'}).status_code==200
+    assert client.post('/admin/login',data={'token':csrf,'username':'wrong','password':'wrong'}).status_code==429

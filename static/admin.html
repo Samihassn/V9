@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="dark light">
+<title>SAMI — Control Center</title>
+<link rel="stylesheet" href="/static/admin.css">
+<script src="/static/admin.js" defer>
+</script>
+<link rel="stylesheet" href="/static/fonts.css?v=8">
+</head>
+<body>
+<a class="skip" href="#workspace">تجاوز إلى المحتوى / Skip to content</a>
+<header class="topbar">
+<a class="brand" href="/">
+<span class="monogram">S.</span>
+<span>SAMI <b>DEVELOPER</b>
+<small>CONTROL CENTER / V8</small>
+</span>
+</a>
+<div class="tools">
+<button id="lang" type="button">EN</button>
+<button id="theme" type="button">◐</button>
+<a href="/" data-t="viewSite">معاينة الموقع ↗</a>
+</div>
+</header>
+<main id="workspace">
+<section id="login-panel" class="login panel">
+<span class="eyebrow" data-t="private">مساحة الإدارة الخاصة</span>
+<div class="login-mark">S<span>.</span>
+</div>
+<h1 data-t="welcome">أهلًا بعودتك، سامي.</h1>
+<p class="muted" data-t="loginDescription">المشاريع، المحتوى، وطلبات العملاء. كل شيء في مكان واحد.</p>
+<form id="login-form">
+<label for="secret" data-t="adminToken">مفتاح الإدارة</label>
+<input type="password" id="secret" required autocomplete="current-password" minlength="32">
+<button class="primary" data-t="signIn">دخول آمن ↗</button>
+</form>
+<p id="login-msg" role="status" aria-live="polite">
+</p>
+</section>
+<div id="dashboard" hidden>
+<aside class="sidebar">
+<p class="eyebrow" data-t="workspace">مساحة العمل</p>
+<nav id="tabs" aria-label="Admin">
+</nav>
+<div class="sidebar-foot">
+<span class="status-dot">
+</span>
+<span data-t="privateSession">جلسة إدارة خاصة</span>
+<button id="logout" data-t="logout">تسجيل الخروج</button>
+</div>
+</aside>
+<div class="main-content">
+<header class="page-heading">
+<div>
+<span class="eyebrow" data-t="controlCenter">مركز التحكم</span>
+<h1 id="page-title">
+</h1>
+<p class="muted" data-t="dashboardIntro">تفاصيل صغيرة. تجربة أفضل. تحكّم بكل ما يظهر على موقعك.</p>
+</div>
+<button id="refresh" data-t="refresh">↻ تحديث</button>
+</header>
+<div id="admin-msg" role="status" aria-live="polite">
+</div>
+<section id="stats" class="stats">
+</section>
+<div id="sections">
+</div>
+<footer>SAMI DEVELOPER <span>V8 / CMS</span>
+</footer>
+</div>
+</div>
+</main>
+<noscript>يرجى تفعيل JavaScript لإدارة الموقع. Enable JavaScript to manage your site.</noscript>
+</body>
+</html>

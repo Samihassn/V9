@@ -1,0 +1,16 @@
+(() => {
+  'use strict';
+  const root=document.querySelector('#workflow-showcase'),canvas=root.querySelector('.workflow-canvas'),svg=root.querySelector('svg'),track=svg.querySelector('path'),dot=root.querySelector('.flow-packet');
+  const nodes=[...root.querySelectorAll('.flow-node')],toggle=root.querySelector('#workflow-toggle'),status=root.querySelector('#workflow-status'),counter=root.querySelector('.workflow-step');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const messages=[['استقبال الطلب وتجهيز البيانات','Receiving a request and preparing data'],['فهم المحتوى وتصنيفه بالذكاء الاصطناعي','Understanding and classifying the content'],['توجيه البيانات إلى المسار المناسب','Routing data to the appropriate branch'],['تسجيل المعلومات في قاعدة البيانات','Recording information in the database'],['إيصال النتيجة إلى الفريق','Delivering the result to the team']];
+  let paused=reduced.matches,visible=false,frame=0,last=0,elapsed=0,step=0,paths=[];
+  function render(){const ar=document.documentElement.lang==='ar';status.textContent=messages[step][ar?0:1];counter.textContent=String(step+1).padStart(2,'0')+' / 05';nodes.forEach((n,i)=>n.classList.toggle('active',i===step));toggle.textContent=reduced.matches?(ar?'الخطوة التالية':'Next step'):paused?(ar?'تشغيل الحركة':'Play animation'):(ar?'إيقاف الحركة مؤقتًا':'Pause animation');toggle.setAttribute('aria-pressed',String(paused));}
+  function measure(){const w=canvas.clientWidth,h=canvas.clientHeight,mobile=w<700;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);const centers=nodes.map(n=>({x:n.offsetLeft,y:n.offsetTop}));paths=[[0,1],[1,2],[2,3],[2,4]].map(([a,b])=>{const p=centers[a],q=centers[b];return mobile?`M${p.x} ${p.y} C${p.x} ${(p.y+q.y)/2} ${q.x} ${(p.y+q.y)/2} ${q.x} ${q.y}`:`M${p.x} ${p.y} C${(p.x+q.x)/2} ${p.y} ${(p.x+q.x)/2} ${q.y} ${q.x} ${q.y}`;});track.setAttribute('d',paths.join(' '));}
+  const travel=document.createElementNS('http://www.w3.org/2000/svg','path');travel.setAttribute('fill','none');travel.setAttribute('stroke','none');svg.append(travel);
+  function tick(now){const delta=last?Math.min(now-last,50):0;last=now;elapsed+=delta;const next=Math.floor(elapsed/2200)%5;if(next!==step){step=next;render();}const progress=(elapsed%2200)/2200;if(step<4&&paths.length){travel.setAttribute('d',paths[step]);const p=travel.getPointAtLength(travel.getTotalLength()*progress);dot.style.transform=`translate(${p.x-3}px,${p.y-3}px)`;dot.style.opacity=String(Math.min(1,progress*8,(1-progress)*8));}else dot.style.opacity='0';frame=requestAnimationFrame(tick);}
+  function sync(){cancelAnimationFrame(frame);last=0;if(!paused&&!reduced.matches&&visible&&!document.hidden)frame=requestAnimationFrame(tick);else dot.style.opacity='0';render();}
+  toggle.addEventListener('click',()=>{if(reduced.matches){step=(step+1)%5;render();}else{paused=!paused;sync();}});
+  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;sync();},{threshold:.1}).observe(root);
+  new ResizeObserver(measure).observe(canvas);document.fonts.ready.then(measure);document.addEventListener('visibilitychange',sync);reduced.addEventListener('change',()=>{paused=reduced.matches;sync();});new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});measure();render();
+})();

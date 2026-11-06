@@ -1,0 +1,32 @@
+const toggle = document.getElementById('lang');
+let english = false;
+try { english = localStorage.getItem('sami-language') === 'en'; } catch {}
+function filterProjects() {
+  const query = document.getElementById('project-search')?.value.trim().toLowerCase() || '';
+  const cards = [...document.querySelectorAll('.project-card')];
+  let count = 0;
+  cards.forEach(card => {
+    const terms = [...card.querySelectorAll('[data-ar]')].map(el => el.dataset.ar + ' ' + el.dataset.en).join(' ');
+    card.hidden = !(terms + ' ' + card.textContent).toLowerCase().includes(query);
+    if (!card.hidden) count++;
+  });
+  document.getElementById('project-count').textContent = english ? `${count} projects` : `${count} مشاريع`;
+  document.getElementById('no-results').hidden = !cards.length || count > 0;
+}
+function language() {
+  document.documentElement.lang = english ? 'en' : 'ar';
+  document.documentElement.dir = english ? 'ltr' : 'rtl';
+  toggle.textContent = english ? 'AR' : 'EN';
+  toggle.setAttribute('aria-label', english ? 'Switch to Arabic' : 'التبديل إلى الإنجليزية');
+  document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+    el.textContent = english ? el.dataset.en : el.dataset.ar;
+  });
+  filterProjects();
+}
+toggle?.addEventListener('click', () => {
+  english = !english;
+  try { localStorage.setItem('sami-language', english ? 'en' : 'ar'); } catch {}
+  language();
+});
+document.getElementById('project-search')?.addEventListener('input', filterProjects);
+language();

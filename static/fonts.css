@@ -1,0 +1,45 @@
+/* IBM Plex Sans Arabic — self-hosted, SIL OFL 1.1. */
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("/static/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("/static/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url("/static/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("/static/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2") format("woff2");
+}
+
+html[lang="ar"] body {
+  font-family: "IBM Plex Sans Arabic", "Segoe UI", Arial, sans-serif;
+  line-height: 1.85;
+}
+html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3 {
+  letter-spacing: 0;
+  font-weight: 600;
+}
+html[lang="ar"] .hero-specialty { font-size: 12px; letter-spacing: 0; }
+html[lang="ar"] .eyebrow { letter-spacing: 0; }
+html[lang="ar"] label { font-size: 13px; }

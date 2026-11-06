@@ -1,0 +1,6 @@
+# Explicit opt-in only: use a verified COPY of existing data for staging first.
+# docker compose -f docker-compose.yml -f docker-compose.existing-volume.yml up -d --build
+volumes:
+  sami-v7-data:
+    external: true
+    name: ${EXISTING_DATA_VOLUME:?Set the verified existing volume name}

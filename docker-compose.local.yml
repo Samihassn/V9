@@ -1,0 +1,7 @@
+services:
+  web:
+    ports:
+      - "127.0.0.1:${LOCAL_PORT:-8000}:8000"
+    environment:
+      HTTPS_ONLY: "false"
+      SITE_URL: http://localhost:8000
